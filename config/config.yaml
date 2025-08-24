@@ -1,0 +1,57 @@
+types:
+  - value: "feat: :sparkles:"
+    name: "feat:     新機能の追加 ✨"
+  - value: "feat: :boom:"
+    name: "feat:     互換性を破壊するような機能の変更・削除をする時 💥"
+  - value: "feat: :lock:"
+    name: "feat:     セキュリティ向上 🔒️"
+  - value: "feat: :tada:"
+    name: "feat:     初回コミット 🎉"
+  - value: "fix: :bug:"
+    name: "fix:      バグ修正 🐛"
+  - value: "fix: :ambulance:"
+    name: "fix:      緊急のバグ修正 🚑️"
+  - value: "docs: :memo:"
+    name: "docs:     ドキュメントのみの変更 📝"
+  - value: "style: :art:"
+    name: "style:    コードの動作に影響しない、見た目だけの変更 🎨"
+  - value: "refactor: :recycle:"
+    name: "refactor: バグ修正や機能追加ではないコードの変更 ♻"
+  - value: "perf: :zap:"
+    name: "perf:     パフォーマンスを向上させるコードの変更 ⚡"
+  - value: "test: :white_check_mark:"
+    name: "test:     不足しているテストの追加または既存のテストの修正 ✅"
+  - value: "ci: :green_heart:"
+    name: "ci:       CIの設定・改善 💚"
+  - value: "chore: :wrench:"
+    name: "chore:    構成ファイル・設定ファイルを追加したり更新したときに使います 🔧"
+  - value: "chore: :package:"
+    name: "chore:    パッケージのインストール・アンインストール 📦"
+  - value: "revert: :rewind:"
+    name: "revert:   以前のコミットを元に戻します ⏪"
+
+messages:
+  type: タイプと絵文字を選択してください
+  subject: コミット内容について入力してください
+  ticket_number: RedmineのIssue番号を入力してください
+  confirm_commit: 上記の内容でコミットを継続してもよろしいですか？
+
+skip_questions:
+  - scope
+  - body
+  - breaking
+  - footer
+
+allow_breaking_changes:
+  - feat
+  - fix
+
+ticket_number:
+  enable: false
+  required: true
+  prefix: "#"
+  match_pattern: "\\d+"
+
+  from_branch_name:
+    enable: true
+    extract_regexp: "^.+?\\/(?P<ticket_number>\\d+)([-_]\\w+)*$"
