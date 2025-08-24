@@ -13,6 +13,7 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 const (
@@ -21,6 +22,9 @@ const (
 	defaultBodyPrompt            = "Enter commit body (optional)"
 	defaultConfirmPrompt         = "Commit this message?"
 	defaultTypeSelectDisplaySize = 5
+	defaultPromptSeparator       = ": "
+	defaultIconCharQuestion      = "?"
+	defaultIconCharEntered       = "✓"
 )
 
 var (
@@ -36,6 +40,12 @@ var (
 		key.WithKeys("alt+enter", "ctrl+enter"),
 		key.WithHelp("⌘+Enter/Ctrl+Enter", "submit changes"),
 	)
+
+	fgColor = lipgloss.Color("#bb9af7")
+
+	defaultPromptStyle               = lipgloss.NewStyle().Bold(true)
+	defaultIconStyle                 = lipgloss.NewStyle().Foreground(fgColor).Bold(true).MarginRight(1)
+	defaultCommitMessagePreviewStyle = lipgloss.NewStyle().Bold(true).Padding(0, 2).Margin(0, 1).Border(lipgloss.RoundedBorder())
 )
 
 // Stage represents the current stage of the commit message creation process
@@ -50,7 +60,6 @@ const (
 	StageBreaking     Stage = "breaking"
 	StageFooter       Stage = "footer"
 	StageConfirm      Stage = "confirm"
-	StageFinished     Stage = "finished"
 )
 
 // CommitData holds all the data collected from the user for generating commit message
@@ -158,7 +167,8 @@ func NewModel(cfg *config.Config, gitRepo repo.GitRepository) (Model, error) {
 	if cfg.Messages.Scope != "" {
 		scopePrompt = cfg.Messages.Scope
 	}
-	scopeInput.Prompt = scopePrompt + "> "
+	scopeInput.Prompt = scopePrompt + defaultPromptSeparator
+	scopeInput.PromptStyle = defaultPromptStyle
 
 	// Initialize ticket number model
 	ticketNumber := NewTicketNumberModel(cfg.Messages.TicketNumber, cfg.TicketNumber, gitRepo)
@@ -169,7 +179,8 @@ func NewModel(cfg *config.Config, gitRepo repo.GitRepository) (Model, error) {
 	if cfg.Messages.Subject != "" {
 		subjectPrompt = cfg.Messages.Subject
 	}
-	subjectInput.Prompt = subjectPrompt + "> "
+	subjectInput.Prompt = subjectPrompt + defaultPromptSeparator
+	subjectInput.PromptStyle = defaultPromptStyle
 
 	// Initialize body input
 	bodyInput := textarea.New()
@@ -177,7 +188,10 @@ func NewModel(cfg *config.Config, gitRepo repo.GitRepository) (Model, error) {
 	if cfg.Messages.Body != "" {
 		bodyPrompt = cfg.Messages.Body
 	}
-	bodyInput.Prompt = bodyPrompt + "> "
+	bodyInput.Prompt = bodyPrompt + defaultPromptSeparator
+	bodyInput.FocusedStyle = textarea.Style{
+		Prompt: defaultPromptStyle,
+	}
 
 	// Initialize breaking changes model
 	breaking := NewBreakingChangesModel(cfg.Messages.BreakingConfirm, cfg.Messages.BreakingMessage)
@@ -291,7 +305,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, tea.Quit
 			}
 		}
+
 		m.currentStage = m.nextStage(m.currentStage)
+		switch m.currentStage {
+		case StageScope:
+			m.scopeInput.Focus()
+		case StageTicketNumber:
+			m.ticketNumber.Focus()
+		case StageSubject:
+			m.subjectInput.Focus()
+		case StageBody:
+			m.bodyInput.Focus()
+		case StageBreaking:
+			m.breaking.Focus()
+		case StageFooter:
+			m.footer.Focus()
+		}
 	}
 
 	return m, cmd
@@ -302,9 +331,9 @@ func (m Model) View() string {
 	// Progress display
 	sections = append(sections, m.buildProgressView())
 	// Current stage view
-	sections = append(sections, m.getStageView(m.currentStage))
+	sections = append(sections, defaultIconStyle.Render(defaultIconCharQuestion)+m.getStageView(m.currentStage))
 
-	return strings.Join(sections, "\n")
+	return strings.Join(sections, "\n") + "\n"
 }
 
 func (m Model) buildProgressView() string {
@@ -315,7 +344,7 @@ func (m Model) buildProgressView() string {
 			break
 		}
 
-		sections = append(sections, m.getStageView(s))
+		sections = append(sections, defaultIconStyle.Render(defaultIconCharEntered)+m.getStageView(s))
 		s = m.nextStage(s)
 	}
 	return strings.Join(sections, "\n")
@@ -338,9 +367,9 @@ func (m Model) getStageView(stage Stage) string {
 	case StageFooter:
 		return m.footer.View()
 	case StageConfirm:
+		commitMessagePreview := m.commitData.GenerateCommitMessage()
+		m.confirm.Prompt += "\n" + defaultCommitMessagePreviewStyle.Render(commitMessagePreview)
 		return m.confirm.View()
-	case StageFinished:
-		return "Commit completed!"
 	default:
 		return ""
 	}
@@ -357,7 +386,7 @@ func (m Model) nextStage(stage Stage) Stage {
 		if m.config.TicketNumber.Enable {
 			return StageTicketNumber
 		}
-		return StageSubject
+		fallthrough
 	case StageTicketNumber:
 		return StageSubject
 	case StageSubject:
@@ -379,9 +408,6 @@ func (m Model) nextStage(stage Stage) Stage {
 }
 
 func handleTextInput(m textinput.Model, msg tea.Msg) (bool, textinput.Model, tea.Cmd) {
-	if !m.Focused() {
-		m.Focus()
-	}
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		if key.Matches(msg, enterKey) {
 			return true, m, nil

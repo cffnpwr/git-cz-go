@@ -34,7 +34,7 @@ messages:
   type: タイプと絵文字を選択してください
   subject: コミット内容について入力してください
   ticket_number: RedmineのIssue番号を入力してください
-  confirm_commit: 上記の内容でコミットを継続してもよろしいですか？
+  confirm_commit: 下記の内容でコミットを継続してもよろしいですか？
 
 skip_questions:
   - scope

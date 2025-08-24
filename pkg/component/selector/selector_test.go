@@ -381,8 +381,9 @@ func TestView(t *testing.T) {
 
 			if tt.selected && tt.showSelectedItem {
 				expectedItem := tt.items[tt.cursor].String()
-				if view != questionStyle.Render(model.Prompt+"> ")+expectedItem {
-					t.Errorf("expected selected item in view, got: %q", view)
+				expectedView := promptStyle.Render(model.Prompt+": ") + expectedItem
+				if view != expectedView {
+					t.Errorf("expected %q, got: %q", expectedView, view)
 				}
 			}
 		})

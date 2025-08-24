@@ -74,6 +74,12 @@ func (m BreakingChangesModel) HasBreakingChanges() bool {
 	return m.confirm.IsConfirmed() && m.confirm.GetValue()
 }
 
+func (m BreakingChangesModel) Focus() {
+	if m.stage == BreakingStageInput {
+		m.textinput.Focus()
+	}
+}
+
 func (m BreakingChangesModel) Init() tea.Cmd {
 	return m.confirm.Init()
 }

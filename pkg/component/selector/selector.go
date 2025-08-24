@@ -20,7 +20,7 @@ var (
 	fgColor = lipgloss.Color("#bb9af7")
 
 	style             = lipgloss.NewStyle().PaddingTop(2).PaddingBottom(2).PaddingLeft(2)
-	questionStyle     = lipgloss.NewStyle().Bold(true)
+	promptStyle       = lipgloss.NewStyle().Bold(true)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(basePadding + 2)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(basePadding).Foreground(fgColor)
 )
@@ -123,7 +123,12 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		km := m.keyMap
 		mod := util.GenMod(len(m.items))
 		// middle of displayed items
-		middle := mod(int(math.Floor(float64(m.displaySize)/2)) + m.displayRange[0])
+		var middle int
+		if m.cyclic {
+			middle = mod(int(math.Ceil(float64(m.displaySize)/2)) + m.displayRange[0])
+		} else {
+			middle = mod(int(math.Floor(float64(m.displaySize)/2)) + m.displayRange[0])
+		}
 		switch {
 		case key.Matches(msg, km.Up):
 			if m.selected {
@@ -176,15 +181,15 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 func (m Model) View() string {
 	mod := util.GenMod(len(m.items))
 
-	qStr := m.Prompt + "> "
-	qStr = questionStyle.Render(qStr)
+	qStr := m.Prompt + ": "
+	qStr = promptStyle.Render(qStr)
 	if m.selected {
 		if !m.showSelectedItem {
 			return ""
 		}
 
 		selected := m.items[m.cursor]
-		return qStr + selected.String()
+		return qStr + selectedItemStyle.Render(selected.String())
 	}
 
 	start := m.displayRange[0]

@@ -81,6 +81,10 @@ func (m TicketNumberModel) IsFinished() bool {
 	return m.finished
 }
 
+func (m TicketNumberModel) Focus() {
+	m.input.Focus()
+}
+
 func (m TicketNumberModel) Init() tea.Cmd {
 	return textinput.Blink
 }

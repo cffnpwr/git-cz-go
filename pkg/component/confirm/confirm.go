@@ -12,11 +12,12 @@ const (
 
 var (
 	fgColor = lipgloss.Color("#bb9af7")
+	bgColor = lipgloss.Color("#1e1e2e")
 
 	border = lipgloss.NormalBorder()
 
-	style         = lipgloss.NewStyle().Border(border)
-	selectedStyle = lipgloss.NewStyle().Border(border).Foreground(lipgloss.Color("#ffffff")).Background(fgColor).Bold(true)
+	style         = lipgloss.NewStyle().Background(bgColor).Padding(0, 2).Margin(1, 1)
+	selectedStyle = style.Foreground(lipgloss.Color("#ffffff")).Background(fgColor).Bold(true)
 )
 
 type KeyMap struct {

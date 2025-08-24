@@ -61,6 +61,10 @@ func (m FooterModel) GetPrompt() string {
 	return m.textarea.Placeholder
 }
 
+func (m FooterModel) Focus() {
+	m.textarea.Focus()
+}
+
 func (m FooterModel) Init() tea.Cmd {
 	return textarea.Blink
 }
